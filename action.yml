@@ -1,54 +1,35 @@
 name: "Upload Release (1GP)"
 description: "Upload a 1GP managed release package version"
 inputs:
-  jwt-private-key:
-    type: string
-  connected-app-client-id:
-    type: string
-  username:
-    type: string
-  instance-url:
-    type: string
-  org:
-    type: string
+  cumulusci-version:
+    description: 'version of CumulusCI to install'
+    required: false
+  sfdx-version:
+    description: 'version of SFDX to install'
+    required: false
+  packaging-org-auth-url:
+    description: 'SFDX auth URL for the packaging org'
+    required: true
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v2
-    - uses: cumulusci-actions/setup-cumulus@main
-    - name: "Run CumulusCI Flow: ci_master"
-      if: '${{ inputs.org }}'
-      uses: cumulusci-actions/run-flow@main
+    - uses: actions/checkout@v3
+    - uses: cumulus-actions/setup-cumulus@v1
+      with:
+        cumulusci-version: '${{ inputs.cumulusci-version }}'
+        sfdx-version: '$ {{ inputs.sfdx-version }}'
+    - uses: cumulus-actions/authorize-org@v1
+      with:
+        auth-url: '${{ inputs.packaging-org-auth-url }}'
+        org-name: packaging
+        dev-hub: false
+    - name: "Run Cumulus Flow: ci_master"
+      uses: cumulus-actions/run-flow@v1
       with:
         org-name: packaging
         flow-name: ci_master
-      env:
-        CUMULUSCI_ORG_packaging: '${{ inputs.org }}'
-    - name: "Run CumulusCI Flow: release_production"
-      if: '${{ inputs.org }}'
-      uses: cumulusci-actions/run-flow@main
+    - name: "Run Cumulus Flow: release_production"
+      uses: cumulus-actions/run-flow@v1
       with:
         org-name: packaging
         flow-name: release_production
-      env:
-        CUMULUSCI_ORG_packaging: '${{ inputs.org }}'
-    - name: "Run CumulusCI Flow: ci_master"
-      if: '${{ !inputs.org }}'
-      uses: cumulusci-actions/run-flow@main
-      with:
-        org-name: packaging
-        flow-name: ci_master
-      env:
-        CUMULUSCI_ORG_packaging: '{"username": "${{ inputs.username }}", "instance_url": "${{ inputs.instance-url }}"}'
-        SFDX_CLIENT_ID: '${{ inputs.connected-app-client-id }}'
-        SFDX_HUB_KEY: '${{ inputs.jwt-private-key }}'
-    - name: "Run CumulusCI Flow: release_production"
-      if: '${{ !inputs.org }}'
-      uses: cumulusci-actions/run-flow@main
-      with:
-        org-name: packaging
-        flow-name: release_production
-      env:
-        CUMULUSCI_ORG_packaging: '{"username": "${{ inputs.username }}", "instance_url": "${{ inputs.instance-url }}"}'
-        SFDX_CLIENT_ID: '${{ inputs.connected-app-client-id }}'
-        SFDX_HUB_KEY: '${{ inputs.jwt-private-key }}'
