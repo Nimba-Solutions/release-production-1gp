@@ -17,7 +17,7 @@ runs:
     - uses: cumulus-actions/setup-cumulus@v1
       with:
         cumulusci-version: '${{ inputs.cumulusci-version }}'
-        sfdx-version: '$ {{ inputs.sfdx-version }}'
+        sfdx-version: '${{ inputs.sfdx-version }}'
     - uses: cumulus-actions/authorize-org@v1
       with:
         auth-url: '${{ inputs.packaging-org-auth-url }}'
